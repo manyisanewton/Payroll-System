@@ -48,7 +48,16 @@ npm run preview
 
 ## Backend
 
-This project now includes a simple Express backend in `backend/index.js`.
+This project now uses PostgreSQL as the backend database with Express in `backend/index.js`.
+
+### Environment variables
+
+Create a `.env` file in the repository root with:
+
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/payroll_system
+PORT=4000
+```
 
 ### Run the backend server
 
