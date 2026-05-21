@@ -16,7 +16,7 @@ A modern, responsive payroll management dashboard built with React, TypeScript, 
 - TypeScript
 - Vite
 - Tailwind CSS
-- Supabase (prepared in `src/lib/supabase.ts`)
+- Express backend
 
 ## Getting Started
 
@@ -56,13 +56,26 @@ This project now includes a simple Express backend in `backend/index.js`.
 npm run backend
 ```
 
+Be sure to start the backend before running the frontend.
+
 The backend is available at `http://localhost:4000` and provides these endpoints:
 
-- `GET /api/employees` — list of employees
+- `GET /api/employees` — list all employees
 - `GET /api/employees/:id` — fetch a single employee profile
+- `POST /api/employees` — create a new employee
 - `PUT /api/employees/:id` — update an employee profile
-- `GET /api/payroll` — payroll summary
-- `POST /api/payslips` — create a new payslip
+- `DELETE /api/employees/:id` — delete an employee
+- `GET /api/payroll` — list all payroll records
+- `POST /api/payroll-records` — create payroll records
+- `PUT /api/payroll-records/:id` — update payroll record status
+- `GET /api/leave-requests` — list leave requests
+- `POST /api/leave-requests` — submit a new leave request
+- `PUT /api/leave-requests/:id` — update leave request status
+- `GET /api/attendance` — list attendance data
+- `POST /api/attendance` — add an attendance record
+- `GET /api/audit-logs` — list audit logs
+- `POST /api/audit-logs` — create an audit entry
+- `POST /api/payslips` — create a payslip payload
 
 ## Project Structure
 
@@ -77,7 +90,7 @@ The backend is available at `http://localhost:4000` and provides these endpoints
 ## Notes
 
 - Update the app metadata in `index.html` as needed.
-- If using Supabase, configure environment variables and the `src/lib/supabase.ts` client.
+- The frontend now uses the local backend instead of Supabase.
 
 ## License
 
