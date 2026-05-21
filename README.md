@@ -46,6 +46,22 @@ npm run build
 npm run preview
 ```
 
+## Backend
+
+This project now includes a simple Express backend in `backend/index.js`.
+
+### Run the backend server
+
+```bash
+npm run backend
+```
+
+The backend is available at `http://localhost:4000` and provides these endpoints:
+
+- `GET /api/employees` — list of employees
+- `GET /api/payroll` — payroll summary
+- `POST /api/payslips` — create a new payslip
+
 ## Project Structure
 
 - `src/` – application source files
