@@ -28,6 +28,25 @@ app.get('/api/employees', (req, res) => {
   res.json({ data: employees });
 });
 
+app.get('/api/employees/:id', (req, res) => {
+  const employee = employees.find(emp => emp.id === req.params.id);
+  if (!employee) {
+    return res.status(404).json({ error: 'Employee not found.' });
+  }
+  res.json({ data: employee });
+});
+
+app.put('/api/employees/:id', (req, res) => {
+  const index = employees.findIndex(emp => emp.id === req.params.id);
+  if (index === -1) {
+    return res.status(404).json({ error: 'Employee not found.' });
+  }
+
+  const updates = req.body;
+  employees[index] = { ...employees[index], ...updates };
+  res.json({ data: employees[index], message: 'Employee profile updated.' });
+});
+
 app.get('/api/payroll', (req, res) => {
   res.json({ data: payrollSummary });
 });

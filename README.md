@@ -59,6 +59,8 @@ npm run backend
 The backend is available at `http://localhost:4000` and provides these endpoints:
 
 - `GET /api/employees` — list of employees
+- `GET /api/employees/:id` — fetch a single employee profile
+- `PUT /api/employees/:id` — update an employee profile
 - `GET /api/payroll` — payroll summary
 - `POST /api/payslips` — create a new payslip
 
