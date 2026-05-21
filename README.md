@@ -92,6 +92,12 @@ The backend is available at `http://localhost:4000` and provides these endpoints
 - Update the app metadata in `index.html` as needed.
 - The frontend now uses the local backend instead of Supabase.
 
+## Upcoming Enhancements
+
+- Real Login System
+- Employee Portal
+- Clock In System
+
 ## License
 
 This repository is provided as-is. Customize it for your own payroll application.

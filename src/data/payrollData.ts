@@ -2,6 +2,8 @@ export interface Employee {
   id: string;
   name: string;
   email: string;
+  password?: string;
+  role?: 'Admin' | 'HR' | 'Employee';
   idNumber: string;
   department: string;
   position: string;
@@ -70,6 +72,8 @@ export const dbToEmployee = (r: any): Employee => ({
   id: r.id,
   name: r.name,
   email: r.email,
+  password: r.password,
+  role: r.role,
   idNumber: r.id_number || '',
   department: r.department,
   position: r.position,
@@ -86,6 +90,8 @@ export const employeeToDb = (e: Partial<Employee>) => ({
   ...(e.id !== undefined && { id: e.id }),
   ...(e.name !== undefined && { name: e.name }),
   ...(e.email !== undefined && { email: e.email }),
+  ...(e.password !== undefined && { password: e.password }),
+  ...(e.role !== undefined && { role: e.role }),
   ...(e.idNumber !== undefined && { id_number: e.idNumber }),
   ...(e.department !== undefined && { department: e.department }),
   ...(e.position !== undefined && { position: e.position }),
