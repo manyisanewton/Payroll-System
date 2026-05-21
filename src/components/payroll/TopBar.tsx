@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { usePayroll } from '@/contexts/PayrollContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Search, Bell, Menu } from 'lucide-react';
 
 export const TopBar: React.FC = () => {
   const { currentView, setCurrentView, currentUser } = usePayroll();
+  const { logout } = useAuth();
   const [showNotif, setShowNotif] = useState(false);
   const [showMobile, setShowMobile] = useState(false);
 
@@ -48,6 +50,13 @@ export const TopBar: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={logout}
+            className="px-3 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+          >
+            Logout
+          </button>
+
           <div className="relative">
             <button
               onClick={() => setShowNotif(!showNotif)}

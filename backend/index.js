@@ -1,4 +1,4 @@
-import express from 'express';
+﻿import express from 'express';
 import cors from 'cors';
 
 const app = express();
@@ -11,7 +11,9 @@ const employees = [
   {
     id: 'EMP0001',
     name: 'Alice Johnson',
-    email: 'alice.johnson@example.com',
+    email: 'admin@example.com',
+    password: 'password123',
+    role: 'Admin',
     id_number: 'A1234567',
     department: 'Finance',
     position: 'Payroll Manager',
@@ -27,7 +29,9 @@ const employees = [
   {
     id: 'EMP0002',
     name: 'Marcus Reed',
-    email: 'marcus.reed@example.com',
+    email: 'hr@example.com',
+    password: 'password123',
+    role: 'HR',
     id_number: 'B2345678',
     department: 'Human Resources',
     position: 'HR Specialist',
@@ -43,7 +47,9 @@ const employees = [
   {
     id: 'EMP0003',
     name: 'Tina Patel',
-    email: 'tina.patel@example.com',
+    email: 'employee@example.com',
+    password: 'password123',
+    role: 'Employee',
     id_number: 'C3456789',
     department: 'Accounting',
     position: 'Senior Accountant',
@@ -60,23 +66,23 @@ const employees = [
 
 const payrollRecords = [
   {
-    id: 'PAY-EMP0001-001',
-    employee_id: 'EMP0001',
+    id: 'PAY-EMP0003-001',
+    employee_id: 'EMP0003',
     month: '2026-05',
-    basic_salary: 70000,
-    allowances: 12000,
-    overtime: 1800,
-    bonus: 1200,
-    gross_salary: 85000,
-    paye: 10200,
-    nssf: 2400,
+    basic_salary: 65000,
+    allowances: 9000,
+    overtime: 1200,
+    bonus: 500,
+    gross_salary: 75700,
+    paye: 9084,
+    nssf: 2271,
     nhif: 1700,
-    pension: 1400,
+    pension: 1514,
     other_deductions: 650,
-    total_deductions: 16350,
-    net_salary: 68650,
-    status: 'Pending',
-    payment_date: '2026-05-25',
+    total_deductions: 13519,
+    net_salary: 62181,
+    status: 'Paid',
+    payment_date: '2026-05-28',
     created_at: new Date().toISOString(),
   },
 ];
@@ -97,22 +103,13 @@ const leaveRequests = [
 
 const attendance = [
   {
-    id: 'AT-EMP0001-001',
-    employee_id: 'EMP0001',
+    id: 'AT-EMP0003-001',
+    employee_id: 'EMP0003',
     date: '2026-05-20',
-    check_in: '08:05',
+    check_in: '08:10',
     check_out: '17:00',
     hours: 8,
     status: 'Present',
-  },
-  {
-    id: 'AT-EMP0002-001',
-    employee_id: 'EMP0002',
-    date: '2026-05-20',
-    check_in: '08:30',
-    check_out: '17:00',
-    hours: 7.5,
-    status: 'Late',
   },
 ];
 
@@ -138,48 +135,31 @@ const getNextId = (prefix, collection) => {
   return `${prefix}${String(max + 1).padStart(4, '0')}`;
 };
 
-const calculatePayroll = (employee, overtime = 0, bonus = 0) => {
-  const gross = Number(employee.basic_salary || 0) + Number(employee.allowances || 0) + Number(overtime) + Number(bonus);
-  const paye = Math.round(gross * 0.12);
-  const nssf = Math.round(gross * 0.03);
-  const nhif = 1700;
-  const pension = Math.round(gross * 0.02);
-  const other = 650;
-  const total = paye + nssf + nhif + pension + other;
-  return {
-    id: `PAY-${employee.id}-${Date.now()}`,
-    employee_id: employee.id,
-    month: new Date().toISOString().slice(0, 7),
-    basic_salary: Number(employee.basic_salary || 0),
-    allowances: Number(employee.allowances || 0),
-    overtime: Number(overtime),
-    bonus: Number(bonus),
-    gross_salary: gross,
-    paye,
-    nssf,
-    nhif,
-    pension,
-    other_deductions: other,
-    total_deductions: total,
-    net_salary: gross - total,
-    status: 'Pending',
-    payment_date: new Date().toISOString().slice(0, 10),
-    created_at: new Date().toISOString(),
-  };
-};
-
 app.get('/', (req, res) => {
   res.json({ message: 'Payroll Salary System backend is running.' });
 });
 
+app.post('/api/login', (req, res) => {
+  const { email, password } = req.body;
+  const user = employees.find((emp) => emp.email === email && emp.password === password);
+  if (!user) {
+    return res.status(401).json({ error: 'Invalid credentials.' });
+  }
+  const { password: _password, ...userData } = user;
+  res.json({ data: userData });
+});
+
 app.get('/api/employees', (req, res) => {
-  res.json({ data: employees });
+  res.json({ data: employees.map(({ password, ...rest }) => rest) });
 });
 
 app.get('/api/employees/:id', (req, res) => {
   const employee = employees.find(emp => emp.id === req.params.id);
-  if (!employee) return res.status(404).json({ error: 'Employee not found.' });
-  res.json({ data: employee });
+  if (!employee) {
+    return res.status(404).json({ error: 'Employee not found.' });
+  }
+  const { password: _password, ...safeEmployee } = employee;
+  res.json({ data: safeEmployee });
 });
 
 app.post('/api/employees', (req, res) => {
@@ -187,37 +167,35 @@ app.post('/api/employees', (req, res) => {
   const newEmployee = {
     id: getNextId('EMP', employees),
     ...payload,
-    avatar: payload.avatar || `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}`,
     created_at: new Date().toISOString(),
   };
   employees.unshift(newEmployee);
-  res.status(201).json({ data: newEmployee });
+  const { password: _password, ...safeEmployee } = newEmployee;
+  res.status(201).json({ data: safeEmployee });
 });
 
 app.put('/api/employees/:id', (req, res) => {
   const index = employees.findIndex(emp => emp.id === req.params.id);
-  if (index === -1) return res.status(404).json({ error: 'Employee not found.' });
+  if (index === -1) {
+    return res.status(404).json({ error: 'Employee not found.' });
+  }
   employees[index] = { ...employees[index], ...req.body };
-  res.json({ data: employees[index] });
+  const { password: _password, ...safeEmployee } = employees[index];
+  res.json({ data: safeEmployee });
 });
 
 app.delete('/api/employees/:id', (req, res) => {
   const index = employees.findIndex(emp => emp.id === req.params.id);
-  if (index === -1) return res.status(404).json({ error: 'Employee not found.' });
+  if (index === -1) {
+    return res.status(404).json({ error: 'Employee not found.' });
+  }
   const deleted = employees.splice(index, 1)[0];
-  res.json({ data: deleted });
+  const { password: _password, ...safeEmployee } = deleted;
+  res.json({ data: safeEmployee });
 });
 
 app.get('/api/payroll', (req, res) => {
   res.json({ data: payrollRecords });
-});
-
-app.get('/api/payroll-summary', (req, res) => {
-  const totalEmployees = employees.length;
-  const totalPayable = payrollRecords.reduce((sum, item) => sum + Number(item.net_salary || 0), 0);
-  const totalTaxes = payrollRecords.reduce((sum, item) => sum + Number(item.paye || 0) + Number(item.nssf || 0) + Number(item.nhif || 0), 0);
-  const lastRun = payrollRecords.length ? payrollRecords[0].payment_date : new Date().toISOString();
-  res.json({ data: { totalEmployees, totalPayable, totalTaxes, lastRun } });
 });
 
 app.post('/api/payroll-records', (req, res) => {
@@ -233,7 +211,9 @@ app.post('/api/payroll-records', (req, res) => {
 
 app.put('/api/payroll-records/:id', (req, res) => {
   const index = payrollRecords.findIndex(record => record.id === req.params.id);
-  if (index === -1) return res.status(404).json({ error: 'Payroll record not found.' });
+  if (index === -1) {
+    return res.status(404).json({ error: 'Payroll record not found.' });
+  }
   payrollRecords[index] = { ...payrollRecords[index], ...req.body };
   res.json({ data: payrollRecords[index] });
 });
@@ -255,7 +235,9 @@ app.post('/api/leave-requests', (req, res) => {
 
 app.put('/api/leave-requests/:id', (req, res) => {
   const index = leaveRequests.findIndex(lr => lr.id === req.params.id);
-  if (index === -1) return res.status(404).json({ error: 'Leave request not found.' });
+  if (index === -1) {
+    return res.status(404).json({ error: 'Leave request not found.' });
+  }
   leaveRequests[index] = { ...leaveRequests[index], ...req.body };
   res.json({ data: leaveRequests[index] });
 });
