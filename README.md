@@ -32,7 +32,13 @@ npm install
 npm run dev
 ```
 
-Open the local development URL shown in the terminal to view the app.
+Or use the new shortcut:
+
+```bash
+npm start
+```
+
+Open the local development URL shown in the terminal to view the app. Vite starts on `http://localhost:8080` by default and will use the next available port if `8080` is already in use (for example, `http://localhost:8081`).
 
 ### Build for production
 

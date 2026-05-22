@@ -1,10 +1,68 @@
-import React from 'react';
-import { Building2, CreditCard, Bell, Database, Wrench } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Building2, Bell, Database, Wrench, UploadCloud } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { usePayroll } from '@/contexts/PayrollContext';
 
 export const Settings: React.FC = () => {
+  const { user, updateProfile } = useAuth();
+  const { setCurrentUser } = usePayroll();
+  const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '');
+
+  useEffect(() => {
+    setAvatarPreview(user?.avatar || '');
+  }, [user?.avatar]);
+
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload a valid image file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const avatarDataUrl = reader.result as string;
+      setAvatarPreview(avatarDataUrl);
+      updateProfile({ avatar: avatarDataUrl });
+      setCurrentUser((current: any) => ({ ...current, avatar: avatarDataUrl }));
+      toast.success('Profile picture updated');
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="p-4 sm:p-6 space-y-5">
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          <div className="relative w-28 h-28 rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
+            {avatarPreview ? (
+              <img src={avatarPreview} alt={user?.name || 'Profile'} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-slate-500 text-sm">No photo</div>
+            )}
+          </div>
+          <div className="flex-1 space-y-3">
+            <div>
+              <h3 className="text-lg font-bold">Profile Photo</h3>
+              <p className="text-sm text-slate-500">Upload a photo from your computer and it will show in the dashboard.</p>
+            </div>
+            <label className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-900 text-white cursor-pointer hover:bg-slate-800 transition">
+              <UploadCloud className="w-4 h-4" />
+              <span>Select image</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+              />
+            </label>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <form onSubmit={(e) => { e.preventDefault(); toast.success('Company info saved'); }} className="bg-white rounded-2xl border border-slate-200 p-6">
           <div className="flex items-center gap-2 mb-4">

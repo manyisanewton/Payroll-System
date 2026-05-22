@@ -17,6 +17,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateProfile: (updates: Partial<AuthUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -73,8 +74,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
+  const updateProfile = (updates: Partial<AuthUser>) => {
+    setUser((currentUser) => {
+      if (!currentUser) return currentUser;
+      return { ...currentUser, ...updates };
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: Boolean(user), login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: Boolean(user), login, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );
