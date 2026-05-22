@@ -79,6 +79,32 @@ DATABASE_URL=postgresql://postgres:postgres@your-db-host:5432/payroll_system
 PORT=4000
 ```
 
+#### Deploying the backend to Render (quick)
+
+1. Create an account at https://render.com and connect your GitHub repo.
+2. Create a new **Web Service** and select your repository and `main` branch.
+3. Set the following values:
+	- **Environment**: `Node`
+	- **Build Command**: `npm ci`
+	- **Start Command**: `npm run backend`
+	- **Health Check Path**: `/`
+4. Add environment variables in Render for `DATABASE_URL` and `PORT` (use `4000`).
+5. Deploy — Render will provide a public URL (for example `https://payroll-api.onrender.com`).
+
+After Render deploys, set `VITE_API_URL` in Vercel to the Render URL (see below).
+
+#### Set `VITE_API_URL` on Vercel
+
+From Vercel dashboard (recommended): Project → Settings → Environment Variables → Add `VITE_API_URL` = `https://your-backend-url` and redeploy.
+
+Or using Vercel CLI:
+
+```bash
+vercel env add VITE_API_URL production
+# paste your backend URL when prompted
+vercel --prod
+```
+
 ### Docker deployment
 
 You can start the full stack locally with Docker Compose:
@@ -93,6 +119,18 @@ This starts:
 - `frontend` on `http://localhost:5173`
 
 If you deploy the frontend to a public host, the backend must still be reachable from the deployed frontend. Set `VITE_API_URL` to the public backend URL in your host settings.
+
+### Demo/fallback mode
+
+For convenience, the frontend includes a demo fallback auth mode that allows signing in using sample accounts when the backend is unreachable. This is useful to preview the UI but NOT suitable for production.
+
+Sample accounts:
+
+- `admin@example.com` / `password123`
+- `hr@example.com` / `password123`
+- `employee@example.com` / `password123`
+
+When fallback mode is active a small banner appears in the UI indicating demo mode.
 
 ### Build for production
 

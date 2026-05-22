@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import EmployeePortal from "./pages/EmployeePortal";
 import NotFound from "./pages/NotFound";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import FallbackBanner from '@/components/ui/FallbackBanner';
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
   <ThemeProvider defaultTheme="light">
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <AuthAwareBanner />
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -51,3 +53,17 @@ const App = () => (
 );
 
 export default App;
+
+const AuthAwareBanner: React.FC = () => {
+  try {
+    const { user } = useAuth();
+    if (!user) return null;
+    // fallback users created by AuthContext use ids starting with 'u-'
+    if (user.id && user.id.startsWith('u-')) {
+      return <FallbackBanner />;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};

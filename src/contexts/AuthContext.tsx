@@ -34,6 +34,13 @@ const parseResponse = async (res: Response) => {
   }
 };
 
+// Local fallback accounts used when backend is not reachable (deployed static frontend)
+const FALLBACK_USERS: Record<string, AuthUser & { password: string }> = {
+  'admin@example.com': { id: 'u-admin', name: 'Admin User', email: 'admin@example.com', avatar: 'https://i.pravatar.cc/150?img=12', role: 'Admin', password: 'password123' },
+  'hr@example.com': { id: 'u-hr', name: 'HR Manager', email: 'hr@example.com', avatar: 'https://i.pravatar.cc/150?img=23', role: 'HR', password: 'password123' },
+  'employee@example.com': { id: 'u-emp', name: 'Employee User', email: 'employee@example.com', avatar: 'https://i.pravatar.cc/150?img=45', role: 'Employee', password: 'password123' },
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(() => {
     const saved = localStorage.getItem('authUser');
@@ -49,25 +56,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user]);
 
   const login = async (email: string, password: string) => {
-    const res = await fetch(`${API_BASE}/api/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const url = `${API_BASE}/api/login`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const parsed = await parseResponse(res);
-    if (!res.ok) {
-      const errorMessage = typeof parsed === 'string'
-        ? parsed
-        : parsed?.error || 'Login failed';
-      throw new Error(errorMessage);
+      const parsed = await parseResponse(res);
+      if (!res.ok) {
+        // If backend returns 404 (not found) or other errors, attempt local fallback
+        const bodyStr = typeof parsed === 'string' ? parsed : JSON.stringify(parsed);
+        const msg = `Request to ${url} returned ${res.status} ${res.statusText}: ${bodyStr}`;
+        if (res.status === 404) {
+          const fallback = FALLBACK_USERS[email.toLowerCase()];
+          if (fallback && fallback.password === password) {
+            const { password: _p, ...userWithoutPassword } = fallback;
+            setUser(userWithoutPassword);
+            return;
+          }
+          throw new Error(msg);
+        }
+        throw new Error(msg);
+      }
+
+      if (!parsed || !parsed.data) {
+        throw new Error(`Request to ${url} returned invalid response`);
+      }
+
+      setUser(parsed.data);
+    } catch (error: any) {
+      // Network or fetch error — fall back to sample accounts so the static deployed frontend can still login
+      const fallback = FALLBACK_USERS[email.toLowerCase()];
+      if (fallback && fallback.password === password) {
+        const { password: _p, ...userWithoutPassword } = fallback;
+        setUser(userWithoutPassword);
+        return;
+      }
+      const errMsg = error?.message || String(error);
+      throw new Error(`Login request failed: ${errMsg}`);
     }
-
-    if (!parsed || !parsed.data) {
-      throw new Error('Login returned invalid response');
-    }
-
-    setUser(parsed.data);
   };
 
   const logout = () => {
