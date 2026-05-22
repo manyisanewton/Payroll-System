@@ -13,7 +13,7 @@ interface PayrollContextType {
   auditLogs: AuditLog[];
   loading: boolean;
   refresh: () => Promise<void>;
-  addEmployee: (emp: Omit<Employee, 'id' | 'avatar'>) => Promise<void>;
+  addEmployee: (emp: Omit<Employee, 'id'>) => Promise<void>;
   updateEmployee: (id: string, emp: Partial<Employee>) => Promise<void>;
   deleteEmployee: (id: string) => Promise<void>;
   runPayroll: () => Promise<void>;
@@ -105,7 +105,7 @@ export const PayrollProvider: React.FC<{ children: React.ReactNode }> = ({ child
     refresh();
   }, [refresh]);
 
-  const addEmployee = async (emp: Omit<Employee, 'id' | 'avatar'>) => {
+  const addEmployee = async (emp: Omit<Employee, 'id'>) => {
     try {
       const payload = employeeToDb(emp);
       const result = await fetchJson('/api/employees', { method: 'POST', body: JSON.stringify(payload) });

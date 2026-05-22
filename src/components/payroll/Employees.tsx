@@ -28,6 +28,7 @@ export const Employees: React.FC = () => {
     name: '', email: '', idNumber: '', department: 'Engineering', position: 'Officer',
     basicSalary: 50000, allowances: 7500, bankName: 'Equity Bank', bankAccount: '',
     status: 'Active' as Employee['status'], joinDate: new Date().toISOString().split('T')[0],
+    avatar: '',
   });
 
   const openAdd = () => {
@@ -36,6 +37,7 @@ export const Employees: React.FC = () => {
       name: '', email: '', idNumber: '', department: 'Engineering', position: 'Officer',
       basicSalary: 50000, allowances: 7500, bankName: 'Equity Bank', bankAccount: '',
       status: 'Active', joinDate: new Date().toISOString().split('T')[0],
+      avatar: '',
     });
     setShowModal(true);
   };
@@ -46,6 +48,7 @@ export const Employees: React.FC = () => {
       name: emp.name, email: emp.email, idNumber: emp.idNumber, department: emp.department,
       position: emp.position, basicSalary: emp.basicSalary, allowances: emp.allowances,
       bankName: emp.bankName, bankAccount: emp.bankAccount, status: emp.status, joinDate: emp.joinDate,
+      avatar: emp.avatar || '',
     });
     setShowModal(true);
   };
@@ -187,6 +190,35 @@ export const Employees: React.FC = () => {
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2">
+                <label className="text-xs font-medium text-slate-700 mb-1 block">Profile Photo</label>
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="w-24 h-24 rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
+                    {form.avatar ? (
+                      <img src={form.avatar} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs">No photo</div>
+                    )}
+                  </div>
+                  <label className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-900 text-white cursor-pointer hover:bg-slate-800 transition text-sm">
+                    Upload photo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          setForm(prev => ({ ...prev, avatar: reader.result as string }));
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
               <div className="sm:col-span-2">
                 <label className="text-xs font-medium text-slate-700 mb-1 block">Full Name</label>
                 <input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-blue-500" />
