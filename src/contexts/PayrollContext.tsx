@@ -28,7 +28,7 @@ interface PayrollContextType {
 }
 
 const PayrollContext = createContext<PayrollContextType | undefined>(undefined);
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const parseJsonResponse = async (res: Response) => {
   const text = await res.text();
