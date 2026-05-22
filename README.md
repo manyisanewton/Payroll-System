@@ -40,6 +40,60 @@ npm start
 
 Open the local development URL shown in the terminal to view the app. Vite starts on `http://localhost:8080` by default and will use the next available port if `8080` is already in use (for example, `http://localhost:8081`).
 
+### Deployment
+
+This app requires both the frontend and backend to be available for login and data access.
+
+#### Frontend deployment
+
+The frontend can be deployed as a static Vite app using Vercel or Netlify.
+
+- `vercel.json` is provided for Vercel.
+- `netlify.toml` is provided for Netlify.
+
+On a deployment service, set the following build settings:
+
+- Build command: `npm run build`
+- Publish directory: `dist`
+
+If the frontend and backend are deployed on different hosts, set `VITE_API_URL` to the backend base URL in your deployment environment.
+
+Example for a separate backend host:
+
+```env
+VITE_API_URL=https://api.yourdomain.com
+```
+
+If the backend is hosted on the same origin as the frontend, leave `VITE_API_URL` empty.
+
+#### Backend deployment
+
+The backend is in `backend/index.js` and must be deployed separately as a Node/Express service.
+
+The backend service should be reachable from the deployed frontend at the URL configured in `VITE_API_URL`.
+
+Example backend environment variables:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@your-db-host:5432/payroll_system
+PORT=4000
+```
+
+### Docker deployment
+
+You can start the full stack locally with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+This starts:
+- `db` on `localhost:5432`
+- `backend` on `http://localhost:4000`
+- `frontend` on `http://localhost:5173`
+
+If you deploy the frontend to a public host, the backend must still be reachable from the deployed frontend. Set `VITE_API_URL` to the public backend URL in your host settings.
+
 ### Build for production
 
 ```bash
