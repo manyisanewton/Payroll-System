@@ -67,6 +67,8 @@ npm run backend
 
 Be sure to start the backend before running the frontend.
 
+If PostgreSQL is not available, the backend now starts in fallback in-memory mode so you can still test login and UI behavior locally.
+
 The backend is available at `http://localhost:4000` and provides these endpoints:
 
 - `GET /api/employees` — list all employees
