@@ -73,12 +73,17 @@ Alternatively, start the database, backend, and frontend together with Docker Co
 docker compose up --build
 ```
 
+> Note: Docker must be installed and available on your PATH to run this command.
+> On Windows, install Docker Desktop and restart your terminal.
+
 This starts:
 - `db` on `localhost:5432`
 - `backend` on `http://localhost:4000`
 - `frontend` on `http://localhost:5173`
 
 Open the frontend at `http://localhost:5173` after the services are ready.
+
+Docker Compose includes health checks for Postgres and the backend, so the stack can report readiness more reliably.
 
 The backend is available at `http://localhost:4000` and provides these endpoints:
 

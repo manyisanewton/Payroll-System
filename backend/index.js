@@ -16,6 +16,9 @@ const pool = connectionString
     })
   : null;
 
+const isPlaceholderDatabaseUrl = (url) =>
+  !url || /user:password|username:password/.test(url);
+
 let dbReady = false;
 
 const employees = [
