@@ -155,8 +155,8 @@ const sanitizeEmployee = (employee) => {
 };
 
 const initDatabase = async () => {
-  if (!pool) {
-    console.warn('DATABASE_URL is not set. Backend will run with fallback in-memory data.');
+  if (!pool || isPlaceholderDatabaseUrl(connectionString)) {
+    console.info('PostgreSQL is not configured or available. Starting in fallback in-memory mode.');
     return;
   }
 

@@ -55,9 +55,11 @@ This project now uses PostgreSQL as the backend database with Express in `backen
 Create a `.env` file in the repository root with:
 
 ```env
-DATABASE_URL=postgresql://user:password@localhost:5432/payroll_system
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/payroll_system
 PORT=4000
 ```
+
+If you do not have PostgreSQL installed, the backend will still start in fallback in-memory mode for local testing.
 
 ### Run the backend server
 
