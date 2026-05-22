@@ -743,11 +743,22 @@ app.post('/api/payslips', async (req, res) => {
 
 const startServer = async () => {
   await initDatabase();
-  app.listen(port, () => {
+  const server = app.listen(port);
+
+  server.on('listening', () => {
     console.log(`Backend server listening on http://localhost:${port}`);
     if (!dbReady) {
       console.log('PostgreSQL not available; running in fallback in-memory mode.');
     }
+  });
+
+  server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+      console.error(`Port ${port} is already in use. Stop the process using it or set PORT to another value in .env.`);
+      process.exit(1);
+    }
+    console.error('Failed to start backend:', error);
+    process.exit(1);
   });
 };
 

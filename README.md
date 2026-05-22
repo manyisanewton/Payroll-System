@@ -69,6 +69,8 @@ npm run backend
 
 Be sure to start the backend before running the frontend.
 
+If port `4000` is already in use, stop the other process or set `PORT` to another value in `.env`.
+
 Alternatively, start the database, backend, and frontend together with Docker Compose:
 
 ```bash
