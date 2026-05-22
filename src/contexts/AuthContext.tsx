@@ -21,6 +21,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+
+const parseResponse = async (res: Response) => {
+  const text = await res.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(() => {
     const saved = localStorage.getItem('authUser');
@@ -36,19 +48,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user]);
 
   const login = async (email: string, password: string) => {
-    const res = await fetch('/api/login', {
+    const res = await fetch(`${API_BASE}/api/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
 
+    const parsed = await parseResponse(res);
     if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error?.error || 'Login failed');
+      const errorMessage = typeof parsed === 'string'
+        ? parsed
+        : parsed?.error || 'Login failed';
+      throw new Error(errorMessage);
     }
 
-    const data = await res.json();
-    setUser(data.data);
+    if (!parsed || !parsed.data) {
+      throw new Error('Login returned invalid response');
+    }
+
+    setUser(parsed.data);
   };
 
   const logout = () => {

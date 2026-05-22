@@ -28,18 +28,29 @@ interface PayrollContextType {
 }
 
 const PayrollContext = createContext<PayrollContextType | undefined>(undefined);
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+
+const parseJsonResponse = async (res: Response) => {
+  const text = await res.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+};
 
 const fetchJson = async (path: string, options: RequestInit = {}) => {
   const res = await fetch(`${API_BASE}${path}`, {
     headers: { 'Content-Type': 'application/json' },
     ...options,
   });
+  const body = await parseJsonResponse(res);
   if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err || 'API request failed');
+    const errorMessage = typeof body === 'string' ? body : body?.error || 'API request failed';
+    throw new Error(errorMessage);
   }
-  return res.json();
+  return body;
 };
 
 export const PayrollProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
