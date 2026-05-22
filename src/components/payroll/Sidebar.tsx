@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { usePayroll } from '@/contexts/PayrollContext';
 import { LayoutDashboard, Users, Calculator, FileText, BarChart3, Calendar, Settings, Shield, Building2, LogOut } from 'lucide-react';
 
@@ -15,6 +16,7 @@ const navItems = [
 
 export const Sidebar: React.FC = () => {
   const { currentView, setCurrentView, currentUser } = usePayroll();
+  const { logout } = useAuth();
 
   return (
     <aside className="hidden lg:flex w-64 bg-slate-900 text-slate-100 flex-col h-screen sticky top-0">
@@ -58,7 +60,10 @@ export const Sidebar: React.FC = () => {
             <p className="text-xs text-slate-400">{currentUser.role}</p>
           </div>
         </div>
-        <button className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <button
+          onClick={logout}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition"
+        >
           <LogOut className="w-4 h-4" /> Sign Out
         </button>
       </div>
