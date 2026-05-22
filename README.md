@@ -67,7 +67,18 @@ npm run backend
 
 Be sure to start the backend before running the frontend.
 
-If PostgreSQL is not available, the backend now starts in fallback in-memory mode so you can still test login and UI behavior locally.
+Alternatively, start the database, backend, and frontend together with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+This starts:
+- `db` on `localhost:5432`
+- `backend` on `http://localhost:4000`
+- `frontend` on `http://localhost:5173`
+
+Open the frontend at `http://localhost:5173` after the services are ready.
 
 The backend is available at `http://localhost:4000` and provides these endpoints:
 
