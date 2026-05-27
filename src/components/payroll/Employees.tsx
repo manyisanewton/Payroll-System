@@ -6,13 +6,14 @@ import { toast } from 'sonner';
 
 
 export const Employees: React.FC = () => {
-  const { employees, addEmployee, updateEmployee, deleteEmployee } = usePayroll();
+  const { employees, addEmployee, updateEmployee, uploadEmployeePhoto, deleteEmployee } = usePayroll();
   const [search, setSearch] = useState('');
   const [deptFilter, setDeptFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Employee | null>(null);
   const [viewing, setViewing] = useState<Employee | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   const departments = useMemo(() => Array.from(new Set(employees.map(e => e.department))), [employees]);
 
@@ -33,6 +34,7 @@ export const Employees: React.FC = () => {
 
   const openAdd = () => {
     setEditing(null);
+    setPhotoFile(null);
     setForm({
       name: '', email: '', idNumber: '', department: 'Engineering', position: 'Officer',
       basicSalary: 50000, allowances: 7500, bankName: 'Equity Bank', bankAccount: '',
@@ -44,6 +46,7 @@ export const Employees: React.FC = () => {
 
   const openEdit = (emp: Employee) => {
     setEditing(emp);
+    setPhotoFile(null);
     setForm({
       name: emp.name, email: emp.email, idNumber: emp.idNumber, department: emp.department,
       position: emp.position, basicSalary: emp.basicSalary, allowances: emp.allowances,
@@ -56,12 +59,20 @@ export const Employees: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setShowModal(false);
-    if (editing) {
-      await updateEmployee(editing.id, form);
-      toast.success('Employee updated');
-    } else {
-      await addEmployee(form);
-      toast.success('Employee added');
+    try {
+      const { avatar: _avatar, ...employeePayload } = form;
+      if (editing) {
+        await updateEmployee(editing.id, photoFile ? employeePayload : form);
+        if (photoFile) await uploadEmployeePhoto(editing.id, photoFile);
+        toast.success('Employee updated');
+      } else {
+        const employee = await addEmployee({ ...employeePayload, avatar: '' });
+        if (employee && photoFile) await uploadEmployeePhoto(employee.id, photoFile);
+        toast.success('Employee added');
+      }
+      setPhotoFile(null);
+    } catch (error) {
+      toast.error((error as Error).message || 'Unable to save employee');
     }
   };
 
@@ -208,6 +219,7 @@ export const Employees: React.FC = () => {
                       onChange={e => {
                         const file = e.target.files?.[0];
                         if (!file) return;
+                        setPhotoFile(file);
                         const reader = new FileReader();
                         reader.onload = () => {
                           setForm(prev => ({ ...prev, avatar: reader.result as string }));

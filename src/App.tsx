@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import EmployeePortal from "./pages/EmployeePortal";
 import NotFound from "./pages/NotFound";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { PayrollProvider } from "@/contexts/PayrollContext";
 import FallbackBanner from '@/components/ui/FallbackBanner';
 
 const queryClient = new QueryClient();
@@ -41,7 +42,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/portal" element={<RequireAuth allowedRoles={["Employee"]}><EmployeePortal /></RequireAuth>} />
+              <Route path="/portal" element={<RequireAuth allowedRoles={["Employee"]}><PayrollProvider><EmployeePortal /></PayrollProvider></RequireAuth>} />
               <Route path="/" element={<RequireAuth><Index /></RequireAuth>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
@@ -56,10 +57,9 @@ export default App;
 
 const AuthAwareBanner: React.FC = () => {
   try {
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     if (!user) return null;
-    // fallback users created by AuthContext use ids starting with 'u-'
-    if (user.id && user.id.startsWith('u-')) {
+    if (!token) {
       return <FallbackBanner />;
     }
     return null;

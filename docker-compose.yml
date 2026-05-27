@@ -30,6 +30,9 @@ services:
       - '4000:4000'
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/payroll_system
+      JWT_SECRET: local-docker-payroll-secret-change-before-deploy
+      JWT_EXPIRES_IN: 8h
+      REQUIRE_DATABASE: 'true'
       PORT: 4000
     depends_on:
       - db
@@ -50,7 +53,8 @@ services:
     ports:
       - '5173:5173'
     environment:
-      VITE_API_URL: http://backend:4000
+      VITE_API_URL: http://localhost:4000
+      VITE_ALLOW_DEMO_AUTH: 'false'
     depends_on:
       - backend
 

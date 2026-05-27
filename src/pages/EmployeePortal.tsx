@@ -12,9 +12,10 @@ const EmployeePortal: React.FC = () => {
     return <Navigate to="/login" replace />;
   }
 
-  const myPayroll = payrollRecords.filter((record) => record.employeeId === user.id);
-  const myAttendance = attendance.filter((record) => record.employeeId === user.id);
-  const myLeave = leaveRequests.filter((request) => request.employeeId === user.id);
+  const employeeId = user.employeeId || user.id;
+  const myPayroll = payrollRecords.filter((record) => record.employeeId === employeeId);
+  const myAttendance = attendance.filter((record) => record.employeeId === employeeId);
+  const myLeave = leaveRequests.filter((request) => request.employeeId === employeeId);
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
