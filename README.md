@@ -1,232 +1,179 @@
-﻿# Payroll Salary System
+# Wallet & Payments API
 
-A modern, responsive payroll management dashboard built with React, TypeScript, and Vite.
+A small NestJS API where customers own wallets, can deposit funds, and can transfer money to other wallets. Money is stored as integer minor units, so `1250` means `$12.50` for a USD wallet.
 
-## Features
-
-- Employee management and payroll overview
-- Timesheet and attendance tracking
-- Payroll processing and payslip generation
-- Reporting and security settings
-- Responsive layout with sidebar navigation
-
-## Technologies
-
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- Express backend
-
-## Getting Started
-
-### Install dependencies
+## Setup
 
 ```bash
 npm install
+npm run start:dev
 ```
 
-### Run locally
+The API listens on `http://localhost:3000` by default and creates `wallet.sqlite` in the project root.
 
 ```bash
-npm run dev
-```
-
-Or use the new shortcut:
-
-```bash
-npm start
-```
-
-Open the local development URL shown in the terminal to view the app. Vite starts on `http://localhost:8080` by default and will use the next available port if `8080` is already in use (for example, `http://localhost:8081`).
-
-### Deployment
-
-This app requires both the frontend and backend to be available for login and data access.
-
-#### Frontend deployment
-
-The frontend can be deployed as a static Vite app using Vercel or Netlify.
-
-- `vercel.json` is provided for Vercel.
-- `netlify.toml` is provided for Netlify.
-
-On a deployment service, set the following build settings:
-
-- Build command: `npm run build`
-- Publish directory: `dist`
-
-If the frontend and backend are deployed on different hosts, set `VITE_API_URL` to the backend base URL in your deployment environment.
-
-Example for a separate backend host:
-
-```env
-VITE_API_URL=https://api.yourdomain.com
-```
-
-If the backend is hosted on the same origin as the frontend, leave `VITE_API_URL` empty.
-
-#### Backend deployment
-
-The backend is in `backend/index.js` and must be deployed separately as a Node/Express service.
-
-The backend service should be reachable from the deployed frontend at the URL configured in `VITE_API_URL`.
-
-Example backend environment variables:
-
-```env
-DATABASE_URL=postgresql://postgres:postgres@your-db-host:5432/payroll_system
-PORT=4000
-```
-
-#### Deploying the backend to Render (quick)
-
-1. Create an account at https://render.com and connect your GitHub repo.
-2. Create a new **Web Service** and select your repository and `main` branch.
-3. Set the following values:
-	- **Environment**: `Node`
-	- **Build Command**: `npm ci`
-	- **Start Command**: `npm run backend`
-	- **Health Check Path**: `/`
-4. Add environment variables in Render for `DATABASE_URL` and `PORT` (use `4000`).
-5. Deploy — Render will provide a public URL (for example `https://payroll-api.onrender.com`).
-
-After Render deploys, set `VITE_API_URL` in Vercel to the Render URL (see below).
-
-#### Set `VITE_API_URL` on Vercel
-
-From Vercel dashboard (recommended): Project → Settings → Environment Variables → Add `VITE_API_URL` = `https://your-backend-url` and redeploy.
-
-Or using Vercel CLI:
-
-```bash
-vercel env add VITE_API_URL production
-# paste your backend URL when prompted
-vercel --prod
-```
-
-### Docker deployment
-
-You can start the full stack locally with Docker Compose:
-
-```bash
-docker compose up --build
-```
-
-This starts:
-- `db` on `localhost:5432`
-- `backend` on `http://localhost:4000`
-- `frontend` on `http://localhost:5173`
-
-If you deploy the frontend to a public host, the backend must still be reachable from the deployed frontend. Set `VITE_API_URL` to the public backend URL in your host settings.
-
-### Demo/fallback mode
-
-For convenience, the frontend includes a demo fallback auth mode that allows signing in using sample accounts when the backend is unreachable. This is useful to preview the UI but NOT suitable for production.
-
-Sample accounts:
-
-- `admin@example.com` / `password123`
-- `hr@example.com` / `password123`
-- `employee@example.com` / `password123`
-
-When fallback mode is active a small banner appears in the UI indicating demo mode.
-
-### Build for production
-
-```bash
+npm test
 npm run build
 ```
 
-### Preview the production build
+Optional environment variables:
 
 ```bash
-npm run preview
+PORT=3000
+DATABASE_PATH=wallet.sqlite
 ```
 
-## Backend
+## Architecture
 
-This project now uses PostgreSQL as the backend database with Express in `backend/index.js`.
+- `CustomersModule` creates customers and their wallet in one transaction, and fetches a customer with wallet balance.
+- `WalletsModule` handles deposits and wallet ledger listing.
+- `TransfersModule` owns wallet-to-wallet transfers and transfer lookup.
+- `common/errors` contains the shared API error shape, custom business exceptions, and a global exception filter.
 
-### Environment variables
+The API uses Nest controllers for REST endpoints, services for business rules, TypeORM repositories for normal reads, and `DataSource.transaction()` for money movement.
 
-Create a `.env` file in the repository root with:
+## Endpoints
 
-```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/payroll_system
-PORT=4000
+- `POST /customers` creates a customer and wallet.
+- `GET /customers/:id` fetches a customer with wallet.
+- `POST /wallets/:id/deposits` deposits funds into a wallet.
+- `POST /transfers` transfers funds between wallets.
+- `GET /transfers/:id` fetches one transfer.
+- `GET /wallets/:id/transactions?page=1&limit=20` lists wallet ledger rows.
+
+## Schema
+
+`customers`
+
+- `id` UUID primary key.
+- `name` and unique `email`.
+- timestamps for auditability.
+
+`wallets`
+
+- `id` UUID primary key.
+- `customerId` unique foreign key because each customer has exactly one wallet.
+- `balanceMinorUnits` integer with a database check preventing negative balances.
+- `currency` ISO-like 3-letter code, default `USD`.
+- timestamps.
+
+`wallet_transactions`
+
+- `id` UUID primary key.
+- `type` as `DEPOSIT` or `TRANSFER`.
+- `amountMinorUnits` integer.
+- `currency`.
+- nullable `sourceWalletId` for deposits.
+- nullable `destinationWalletId`.
+- `description`.
+- `createdAt`.
+- indexes on `(sourceWalletId, createdAt)` and `(destinationWalletId, createdAt)` for wallet transaction history.
+
+## Database Choice
+
+SQLite with TypeORM keeps local setup very small: no external database process is needed, and reviewers can run the service after `npm install`. TypeORM was chosen for its Nest integration, repository APIs, schema decorators, and explicit transaction API.
+
+`synchronize: true` is enabled because this is a small assessment project meant to run locally. In a production service, this would be replaced with migrations.
+
+## Money Representation
+
+Balances and transaction amounts are stored as integer minor units. This avoids floating-point rounding errors and keeps comparisons like insufficient-funds checks exact.
+
+## Transactions
+
+Transfers run inside `dataSource.transaction()`. The service:
+
+1. Loads both wallets.
+2. Rejects missing wallets, self-transfers, and currency mismatches.
+3. Debits the source wallet with a conditional update requiring `balanceMinorUnits >= amount`.
+4. Credits the destination wallet.
+5. Inserts the transfer ledger row.
+
+If any step throws, TypeORM rolls the transaction back. Jest covers successful transfer, insufficient funds, currency mismatch, and a forced throw inside a transaction callback to verify no balances or ledger rows are persisted.
+
+## Error Handling
+
+Every error response uses the same shape:
+
+```json
+{
+  "error": {
+    "code": "INSUFFICIENT_FUNDS",
+    "message": "Source wallet has insufficient funds.",
+    "statusCode": 422
+  }
+}
 ```
 
-If you do not have PostgreSQL installed, the backend will still start in fallback in-memory mode for local testing.
+Validation errors return `400` and include the offending field:
 
-### Run the backend server
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Request validation failed.",
+    "statusCode": 400,
+    "fields": {
+      "amountMinorUnits": ["amountMinorUnits must not be less than 1"]
+    }
+  }
+}
+```
+
+Not found errors return `404`. Business rule failures return specific codes such as `INSUFFICIENT_FUNDS`, `SELF_TRANSFER_NOT_ALLOWED`, and `CURRENCY_MISMATCH`. Unexpected errors return a safe `500` without stack traces, SQL, or internal paths.
+
+## Sample Requests
+
+Create a customer:
 
 ```bash
-npm run backend
+curl -X POST http://localhost:3000/customers \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Ada Lovelace","email":"ada@example.com","currency":"USD"}'
 ```
 
-Be sure to start the backend before running the frontend.
-
-If port `4000` is already in use, stop the other process or set `PORT` to another value in `.env`.
-
-Alternatively, start the database, backend, and frontend together with Docker Compose:
+Deposit funds:
 
 ```bash
-docker compose up --build
+curl -X POST http://localhost:3000/wallets/<wallet-id>/deposits \
+  -H "Content-Type: application/json" \
+  -d '{"amountMinorUnits":5000,"description":"Initial funding"}'
 ```
 
-> Note: Docker must be installed and available on your PATH to run this command.
-> On Windows, install Docker Desktop and restart your terminal.
+Successful transfer:
 
-This starts:
-- `db` on `localhost:5432`
-- `backend` on `http://localhost:4000`
-- `frontend` on `http://localhost:5173`
+```bash
+curl -X POST http://localhost:3000/transfers \
+  -H "Content-Type: application/json" \
+  -d '{"sourceWalletId":"<source-wallet-id>","destinationWalletId":"<destination-wallet-id>","amountMinorUnits":1250,"description":"Lunch"}'
+```
 
-Open the frontend at `http://localhost:5173` after the services are ready.
+Failed transfer due to insufficient funds:
 
-Docker Compose includes health checks for Postgres and the backend, so the stack can report readiness more reliably.
+```bash
+curl -X POST http://localhost:3000/transfers \
+  -H "Content-Type: application/json" \
+  -d '{"sourceWalletId":"<source-wallet-id>","destinationWalletId":"<destination-wallet-id>","amountMinorUnits":999999}'
+```
 
-The backend is available at `http://localhost:4000` and provides these endpoints:
+List wallet transactions:
 
-- `GET /api/employees` — list all employees
-- `GET /api/employees/:id` — fetch a single employee profile
-- `POST /api/employees` — create a new employee
-- `PUT /api/employees/:id` — update an employee profile
-- `DELETE /api/employees/:id` — delete an employee
-- `GET /api/payroll` — list all payroll records
-- `POST /api/payroll-records` — create payroll records
-- `PUT /api/payroll-records/:id` — update payroll record status
-- `GET /api/leave-requests` — list leave requests
-- `POST /api/leave-requests` — submit a new leave request
-- `PUT /api/leave-requests/:id` — update leave request status
-- `GET /api/attendance` — list attendance data
-- `POST /api/attendance` — add an attendance record
-- `GET /api/audit-logs` — list audit logs
-- `POST /api/audit-logs` — create an audit entry
-- `POST /api/payslips` — create a payslip payload
+```bash
+curl "http://localhost:3000/wallets/<wallet-id>/transactions?page=1&limit=20"
+```
 
-## Project Structure
+## Trade-offs And Assumptions
 
-- `src/` – application source files
-- `src/components/` – UI and payroll components
-- `src/contexts/` – React context providers
-- `src/data/` – sample payroll data
-- `src/hooks/` – custom hooks
-- `src/lib/` – utility modules and third-party integrations
-- `src/pages/` – page components and routes
+- No auth is included because the brief explicitly excludes it.
+- Each customer gets exactly one wallet at creation time.
+- Wallets default to `USD`, but another 3-letter currency may be chosen at customer creation.
+- Cross-currency transfers are rejected rather than converted.
+- SQLite is suitable for this local exercise. A production wallet service would likely use PostgreSQL with row-level locks, idempotency keys, request tracing, and a migration workflow.
 
-## Notes
+## Given Another Day
 
-- Update the app metadata in `index.html` as needed.
-- The frontend now uses the local backend instead of Supabase.
-
-## Upcoming Enhancements
-
-- Real Login System
-- Employee Portal
-- Clock In System
-
-## License
-
-This repository is provided as-is. Customize it for your own payroll application.
+- Add idempotency keys for deposits and transfers.
+- Add database migrations instead of `synchronize`.
+- Add OpenAPI documentation.
+- Add end-to-end controller tests for the error response contract.
+- Add structured logging and request correlation IDs.
