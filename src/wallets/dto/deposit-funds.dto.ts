@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString, Length, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Length, Min } from "class-validator";
 
 export class DepositFundsDto {
   @IsInt()

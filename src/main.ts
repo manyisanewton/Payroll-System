@@ -1,10 +1,10 @@
-import { BadRequestException, ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { ValidationError } from 'class-validator';
-import 'reflect-metadata';
-import { AppModule } from './app.module';
-import { AllExceptionsFilter } from './common/errors/all-exceptions.filter';
-import { ApiErrorResponse } from './common/errors/error-response';
+import { BadRequestException, ValidationPipe } from "@nestjs/common";
+import { NestFactory } from "@nestjs/core";
+import { ValidationError } from "class-validator";
+import "reflect-metadata";
+import { AppModule } from "./app.module";
+import { AllExceptionsFilter } from "./common/errors/all-exceptions.filter";
+import { ApiErrorResponse } from "./common/errors/error-response";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,7 +14,8 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      exceptionFactory: (errors) => new BadRequestException(validationErrorBody(errors)),
+      exceptionFactory: (errors) =>
+        new BadRequestException(validationErrorBody(errors)),
     }),
   );
   app.useGlobalFilters(new AllExceptionsFilter());
@@ -33,8 +34,8 @@ function validationErrorBody(errors: ValidationError[]): ApiErrorResponse {
 
   return {
     error: {
-      code: 'VALIDATION_ERROR',
-      message: 'Request validation failed.',
+      code: "VALIDATION_ERROR",
+      message: "Request validation failed.",
       statusCode: 400,
       fields,
     },

@@ -1,14 +1,14 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
-import { ApiException } from '../common/errors/api-exception';
-import { ErrorCode } from '../common/errors/error-code';
-import { Wallet } from '../wallets/entities/wallet.entity';
-import { CreateTransferDto } from './dto/create-transfer.dto';
+import { HttpStatus, Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { DataSource, Repository } from "typeorm";
+import { ApiException } from "../common/errors/api-exception";
+import { ErrorCode } from "../common/errors/error-code";
+import { Wallet } from "../wallets/entities/wallet.entity";
+import { CreateTransferDto } from "./dto/create-transfer.dto";
 import {
   WalletTransaction,
   WalletTransactionType,
-} from './entities/wallet-transaction.entity';
+} from "./entities/wallet-transaction.entity";
 
 @Injectable()
 export class TransfersService {
@@ -25,7 +25,7 @@ export class TransfersService {
       throw new ApiException(
         HttpStatus.UNPROCESSABLE_ENTITY,
         ErrorCode.SELF_TRANSFER_NOT_ALLOWED,
-        'Source and destination wallets must be different.',
+        "Source and destination wallets must be different.",
       );
     }
 
@@ -39,7 +39,7 @@ export class TransfersService {
         throw new ApiException(
           HttpStatus.NOT_FOUND,
           ErrorCode.WALLET_NOT_FOUND,
-          'Source or destination wallet not found.',
+          "Source or destination wallet not found.",
         );
       }
 
@@ -47,7 +47,7 @@ export class TransfersService {
         throw new ApiException(
           HttpStatus.UNPROCESSABLE_ENTITY,
           ErrorCode.CURRENCY_MISMATCH,
-          'Source and destination wallets must use the same currency.',
+          "Source and destination wallets must use the same currency.",
         );
       }
 
@@ -55,17 +55,19 @@ export class TransfersService {
         .createQueryBuilder()
         .update(Wallet)
         .set({
-          balanceMinorUnits: () => 'balanceMinorUnits - :amount',
+          balanceMinorUnits: () => "balanceMinorUnits - :amount",
         })
-        .where('id = :sourceWalletId', { sourceWalletId: sourceWallet.id })
-        .andWhere('balanceMinorUnits >= :amount', { amount: dto.amountMinorUnits })
+        .where("id = :sourceWalletId", { sourceWalletId: sourceWallet.id })
+        .andWhere("balanceMinorUnits >= :amount", {
+          amount: dto.amountMinorUnits,
+        })
         .execute();
 
       if (debitResult.affected !== 1) {
         throw new ApiException(
           HttpStatus.UNPROCESSABLE_ENTITY,
           ErrorCode.INSUFFICIENT_FUNDS,
-          'Source wallet has insufficient funds.',
+          "Source wallet has insufficient funds.",
         );
       }
 
@@ -73,9 +75,9 @@ export class TransfersService {
         .createQueryBuilder()
         .update(Wallet)
         .set({
-          balanceMinorUnits: () => 'balanceMinorUnits + :amount',
+          balanceMinorUnits: () => "balanceMinorUnits + :amount",
         })
-        .where('id = :destinationWalletId', {
+        .where("id = :destinationWalletId", {
           destinationWalletId: destinationWallet.id,
         })
         .setParameters({ amount: dto.amountMinorUnits })
@@ -103,7 +105,7 @@ export class TransfersService {
       throw new ApiException(
         HttpStatus.NOT_FOUND,
         ErrorCode.TRANSFER_NOT_FOUND,
-        'Transfer not found.',
+        "Transfer not found.",
       );
     }
 

@@ -6,12 +6,12 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-} from 'typeorm';
-import { Wallet } from '../../wallets/entities/wallet.entity';
+} from "typeorm";
+import { Wallet } from "../../wallets/entities/wallet.entity";
 
-@Entity('customers')
+@Entity("customers")
 export class Customer {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column({ length: 120 })

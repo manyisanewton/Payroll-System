@@ -4,9 +4,9 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
-} from '@nestjs/common';
-import { Response } from 'express';
-import { ApiErrorResponse } from './error-response';
+} from "@nestjs/common";
+import { Response } from "express";
+import { ApiErrorResponse } from "./error-response";
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -15,14 +15,16 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       const statusCode = exception.getStatus();
-      response.status(statusCode).json(this.fromHttpException(exception, statusCode));
+      response
+        .status(statusCode)
+        .json(this.fromHttpException(exception, statusCode));
       return;
     }
 
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       error: {
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'An unexpected error occurred.',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "An unexpected error occurred.",
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       },
     } satisfies ApiErrorResponse);
@@ -34,17 +36,20 @@ export class AllExceptionsFilter implements ExceptionFilter {
   ): ApiErrorResponse {
     const payload = exception.getResponse();
 
-    if (typeof payload === 'object' && payload !== null && 'error' in payload) {
+    if (typeof payload === "object" && payload !== null && "error" in payload) {
       return payload as ApiErrorResponse;
     }
 
     return {
       error: {
-        code: statusCode === HttpStatus.BAD_REQUEST ? 'VALIDATION_ERROR' : 'HTTP_ERROR',
+        code:
+          statusCode === HttpStatus.BAD_REQUEST
+            ? "VALIDATION_ERROR"
+            : "HTTP_ERROR",
         message:
-          typeof payload === 'string'
+          typeof payload === "string"
             ? payload
-            : exception.message || 'Request failed.',
+            : exception.message || "Request failed.",
         statusCode,
       },
     };
