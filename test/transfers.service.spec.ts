@@ -77,6 +77,30 @@ describe('TransfersService', () => {
     await expect(transactionCount()).resolves.toBe(0);
   });
 
+  it('rejects transfers between wallets with different currencies', async () => {
+    const { sourceWallet, destinationWallet } = await createWalletPair(1000, 250, {
+      destinationCurrency: 'EUR',
+    });
+
+    await expect(
+      transfersService.transfer({
+        sourceWalletId: sourceWallet.id,
+        destinationWalletId: destinationWallet.id,
+        amountMinorUnits: 100,
+      }),
+    ).rejects.toMatchObject({
+      response: {
+        error: {
+          code: 'CURRENCY_MISMATCH',
+        },
+      },
+    });
+
+    await expect(balanceOf(sourceWallet.id)).resolves.toBe(1000);
+    await expect(balanceOf(destinationWallet.id)).resolves.toBe(250);
+    await expect(transactionCount()).resolves.toBe(0);
+  });
+
   it('rolls back balance changes and transaction rows when the transaction callback throws', async () => {
     const { sourceWallet, destinationWallet } = await createWalletPair(1000, 250);
 
@@ -109,7 +133,11 @@ describe('TransfersService', () => {
     await expect(transactionCount()).resolves.toBe(0);
   });
 
-  async function createWalletPair(sourceBalance: number, destinationBalance: number) {
+  async function createWalletPair(
+    sourceBalance: number,
+    destinationBalance: number,
+    options: { sourceCurrency?: string; destinationCurrency?: string } = {},
+  ) {
     const customersRepository = dataSource.getRepository(Customer);
     const walletsRepository = dataSource.getRepository(Wallet);
 
@@ -124,14 +152,14 @@ describe('TransfersService', () => {
       walletsRepository.create({
         customerId: sourceCustomer.id,
         balanceMinorUnits: sourceBalance,
-        currency: 'USD',
+        currency: options.sourceCurrency ?? 'USD',
       }),
     );
     const destinationWallet = await walletsRepository.save(
       walletsRepository.create({
         customerId: destinationCustomer.id,
         balanceMinorUnits: destinationBalance,
-        currency: 'USD',
+        currency: options.destinationCurrency ?? 'USD',
       }),
     );
 

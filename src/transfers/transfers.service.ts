@@ -43,6 +43,14 @@ export class TransfersService {
         );
       }
 
+      if (sourceWallet.currency !== destinationWallet.currency) {
+        throw new ApiException(
+          HttpStatus.UNPROCESSABLE_ENTITY,
+          ErrorCode.CURRENCY_MISMATCH,
+          'Source and destination wallets must use the same currency.',
+        );
+      }
+
       const debitResult = await manager
         .createQueryBuilder()
         .update(Wallet)
