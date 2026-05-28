@@ -27,13 +27,13 @@ export class WalletTransaction {
   @Column({ length: 3 })
   currency: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   sourceWalletId: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   destinationWalletId: string | null;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   description: string | null;
 
   @CreateDateColumn()
