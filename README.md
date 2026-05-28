@@ -199,3 +199,4 @@ The transaction list includes full ledger `items` plus table-ready `rows`:
 - Add OpenAPI documentation.
 - Add end-to-end controller tests for the error response contract.
 - Add structured logging and request correlation IDs.
+# wallet-payments-api
