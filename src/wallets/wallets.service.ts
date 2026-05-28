@@ -86,6 +86,13 @@ export class WalletsService {
 
     return {
       items,
+      rows: items.map((transaction) => ({
+        type: transaction.type,
+        amount: transaction.amountMinorUnits,
+        currency: transaction.currency,
+        description: transaction.description,
+        createdAt: transaction.createdAt,
+      })),
       meta: {
         page,
         limit,

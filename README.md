@@ -162,6 +162,28 @@ List wallet transactions:
 curl "http://localhost:3000/wallets/<wallet-id>/transactions?page=1&limit=20"
 ```
 
+The transaction list includes full ledger `items` plus table-ready `rows`:
+
+```json
+{
+  "rows": [
+    {
+      "type": "TRANSFER",
+      "amount": 1250,
+      "currency": "USD",
+      "description": "Lunch",
+      "createdAt": "2026-05-28T18:21:22.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  }
+}
+```
+
 ## Trade-offs And Assumptions
 
 - No auth is included because the brief explicitly excludes it.
